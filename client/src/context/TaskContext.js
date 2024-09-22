@@ -7,6 +7,8 @@ const API_URL = 'http://localhost:5000/api/tasks';
 
 export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -19,9 +21,13 @@ export const TaskProvider = ({ children }) => {
             },
           });
           setTasks(res.data);
+          setLoading(false);
         } catch (error) {
-          console.error('Failed to fetch tasks:', error.response ? error.response.data : error.message);
+          setError(error.response ? error.response.data : error.message);
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
     fetchTasks();
@@ -37,9 +43,9 @@ export const TaskProvider = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setTasks([...tasks, res.data]);
+        setTasks((prevTasks) => [...prevTasks, res.data]);
       } catch (error) {
-        console.error('Failed to add task:', error.response ? error.response.data : error.message);
+        setError(error.response ? error.response.data : error.message);
       }
     }
   };
@@ -54,9 +60,11 @@ export const TaskProvider = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setTasks(tasks.map((task) => (task._id === id ? res.data : task)));
+        setTasks((prevTasks) =>
+          prevTasks.map((task) => (task._id === id ? res.data : task))
+        );
       } catch (error) {
-        console.error('Failed to update task:', error.response ? error.response.data : error.message);
+        setError(error.response ? error.response.data : error.message);
       }
     }
   };
@@ -71,15 +79,15 @@ export const TaskProvider = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setTasks(tasks.filter((task) => task._id !== id));
+        setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
       } catch (error) {
-        console.error('Failed to delete task:', error.response ? error.response.data : error.message);
+        setError(error.response ? error.response.data : error.message);
       }
     }
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, updateTask, deleteTask }}>
+    <TaskContext.Provider value={{ tasks, loading, error, addTask, updateTask, deleteTask }}>
       {children}
     </TaskContext.Provider>
   );
