@@ -10,7 +10,12 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await register(username, email, password);
+    try {
+      await register(username, email, password);
+      console.log('Registration successful');
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
   };
 
   return (
